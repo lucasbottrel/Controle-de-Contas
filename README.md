@@ -1,6 +1,6 @@
-# controle_de_contas_app
+# Controle de Contas
 
-A new Flutter application.
+APP para organizar contas do usuário.
 
 ## Getting Started
 
