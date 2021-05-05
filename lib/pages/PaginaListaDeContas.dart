@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-List _contas = [];
-
 _recuperarBancoDados() async {
   final caminhoBancoDados = await getDatabasesPath();
   final localBancoDados = join(caminhoBancoDados, "banco.bd");
@@ -22,37 +20,25 @@ _recuperarBancoDados() async {
   return bd;
 }
 
-_adicionarConta(String nome, double preco, String validade) async {
+_adicionarConta(String nome, String senha) async {
   Database bd = await _recuperarBancoDados();
-  Map<String, dynamic> contas = {
+  Map<String, dynamic> dadosUsuario = {
     "nome" : nome,
-    "preco" : preco,
-    "validade": validade
+    "senha" : senha
   };
-  int id = await bd.insert("contas", contas);
-  print("Conta Salva: $id " );
+  int id = await bd.insert("usuarios", dadosUsuario);
+  print("Salvo: $id " );
 }
 
-_listarContas() async{
+_listarUsuarios() async{
   Database bd = await _recuperarBancoDados();
   String sql = "SELECT * FROM contas";
   List contas = await bd.rawQuery(sql); //conseguimos escrever a query que quisermos
-  _contas = [];
   for(var usu in contas){
-    _contas.add(usu['nome']+"\t"+usu['validade']+"\t"+usu['preco'].toString());
+    print(" id: "+usu['id'].toString() +
+        " nome: "+usu['nome']+
+        " idade: "+usu['idade'].toString());
   }
-}
-
-_atualizarContas(String nome, double preco, String validade) async {
-  Database bd = await _recuperarBancoDados();
-  await bd.rawQuery('UPDATE contas SET name = (?), preco = (?), validade=(?) WHERE name = (?)', [nome,preco,validade,nome]);
-  _listarContas();
-}
-
-_deletarContas(String nome) async{
-  Database bd = await _recuperarBancoDados();
-  await bd.rawQuery('DELETE FROM contas WHERE name = (?)', [nome]);
-  _listarContas();
 }
 
 class PaginaListaDeContas extends StatefulWidget {
