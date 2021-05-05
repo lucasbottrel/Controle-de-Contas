@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'PaginaListaDeContas.dart';
+import 'PaginaLogin.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'PaginaCadastro.dart';
 
-class PaginaLogin extends StatefulWidget {
+class PaginaCadastro extends StatefulWidget {
   @override
-  _PaginaLoginState createState() => _PaginaLoginState();
+  _PaginaCadastroState createState() => _PaginaCadastroState();
 }
 
-class _PaginaLoginState extends State<PaginaLogin> {
+class _PaginaCadastroState extends State<PaginaCadastro> {
   TextEditingController _controllerLogin = TextEditingController();
   TextEditingController _controllerSenha = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -32,31 +31,21 @@ class _PaginaLoginState extends State<PaginaLogin> {
     return bd;
   }
 
-  _validarUsuario(String nome, String senha, BuildContext context) async{
-  try {
+  _salvarDados(String nome, String senha) async {
     Database bd = await _recuperarBancoDados();
-    String sql = "SELECT * FROM usuarios WHERE nome = (?) AND senha = (?)";
-    List usuarios = await bd.rawQuery(
-        sql, [nome, senha]); //conseguimos escrever a query que quisermos
-    print(usuarios.length > 0);
-    if (usuarios.length>0) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => PaginaListaDeContas()
-        ),
-      );
-    }
-    } catch(e){
-
-    }
+    Map<String, dynamic> dadosUsuario = {
+      "nome" : nome,
+      "senha" : senha
+    };
+    int id = await bd.insert("usuarios", dadosUsuario);
+    print("Salvo: $id " );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("CONTROLE DE CONTAS"),
+        title: Text("CADASTRO"),
       ),
       body: Form( //consegue armazenar o estado dos campos de texto e além disso, fazer a validação
         key: _formKey, //estado do formulário
@@ -72,7 +61,13 @@ class _PaginaLoginState extends State<PaginaLogin> {
                   labelText: "Login:",
                   hintText: "Digite o login"
               ),
-              controller: _controllerLogin
+              controller: _controllerLogin,
+              validator: (String text){
+                if(text.isEmpty){
+                  return "Digite o texto";
+                }
+                return null;
+              },
             ),
             SizedBox(height: 10,),
             TextFormField(
@@ -85,31 +80,19 @@ class _PaginaLoginState extends State<PaginaLogin> {
                   hintText: "Digite a senha"
               ),
               obscureText: true,
-              controller: _controllerSenha
+              controller: _controllerSenha,
+              validator: (String text){
+                if(text.isEmpty){
+                  return "Digite a senha ";
+                }
+                if(text.length < 4){
+                  return "A senha tem pelo menos 4 dígitos";
+                }
+                return null;
+              },
             ),
             SizedBox(height: 20,),
-            Container(
-              height: 46,
-              child: ElevatedButton(
-                  child: Text("Login",
-                    style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white
-                    ),),
-                  onPressed: (){
-                    bool formOk = _formKey.currentState.validate();
-                    if(! formOk){
-                      return;
-                    }
-                    else{
-                      _validarUsuario(_controllerLogin.text, _controllerSenha.text, context);
-                    }
-                    print("Login "+_controllerLogin.text);
-                    print("Senha "+_controllerSenha.text);
-                  }
-              ),
-            ),
-            SizedBox(height: 20,),
+
             Container(
               height: 46,
               child: ElevatedButton(
@@ -124,18 +107,19 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       return;
                     }
                     else{
+                      _salvarDados(_controllerLogin.text, _controllerSenha.text);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => PaginaCadastro()
+                            builder: (context) => PaginaLogin()
                         ),
                       );
                     }
                     print("Login "+_controllerLogin.text);
                     print("Senha "+_controllerSenha.text);
                   }
-                ),
               ),
+            ),
           ],
         ),
       ),
