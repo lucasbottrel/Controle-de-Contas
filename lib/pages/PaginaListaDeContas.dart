@@ -5,6 +5,9 @@ import 'package:path/path.dart';
 _recuperarBancoDados() async {
   final caminhoBancoDados = await getDatabasesPath();
   final localBancoDados = join(caminhoBancoDados, "banco.bd");
+
+  List _contas = [];
+
   var bd = await openDatabase(
       localBancoDados,
       version: 2,
@@ -20,25 +23,37 @@ _recuperarBancoDados() async {
   return bd;
 }
 
-_adicionarConta(String nome, String senha) async {
+_adicionarConta(String nome, Float preco, String validade) async {
   Database bd = await _recuperarBancoDados();
-  Map<String, dynamic> dadosUsuario = {
+  Map<String, dynamic> contas = {
     "nome" : nome,
-    "senha" : senha
+    "preco" : preco,
+    "validade": validade
   };
-  int id = await bd.insert("usuarios", dadosUsuario);
-  print("Salvo: $id " );
+  int id = await bd.insert("contas", contas);
+  print("Conta Salva: $id " );
 }
 
-_listarUsuarios() async{
+_listarContas() async{
   Database bd = await _recuperarBancoDados();
   String sql = "SELECT * FROM contas";
   List contas = await bd.rawQuery(sql); //conseguimos escrever a query que quisermos
+  _contas = [];
   for(var usu in contas){
-    print(" id: "+usu['id'].toString() +
-        " nome: "+usu['nome']+
-        " idade: "+usu['idade'].toString());
+    _contas.add(usu['nome']+"\t"+usu['validade']+"\t"+usu['preco'].toString())
   }
+}
+
+_atualizarContas(String nome, Float preco, String validade){
+  Database bd = await _recuperarBancoDados();
+  await bd.rawQuery('UPDATE contas SET name = (?), preco = (?), validade=(?) WHERE name = (?)', [nome,preco,validade,nome]);
+  _listarContas();
+}
+
+_deletarContas(String nome){
+  Database bd = await _recuperarBancoDados();
+  await db.rawQuery('DELETE FROM contas WHERE name = (?)', [nome]);
+  _listarContas();
 }
 
 class PaginaListaDeContas extends StatefulWidget {
